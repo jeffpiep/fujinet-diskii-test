@@ -30,43 +30,39 @@ void delay(uint16_t c)
 	xcnt = c & 0xff;
 	ycnt = (c >> 8) & 0xff;
 
-	__asm__ ("ldy %v", ycnt); // 2 cycles
+	__asm__ volatile ("ldy %v", ycnt); // 2 cycles
 l_outer:
-	__asm__ ("ldx %v", xcnt); // 2 cycles
+	__asm__ volatile ("ldx %v", xcnt); // 2 cycles
 l_inner:
-	__asm__ ("dex"); // 2 cycles
-	__asm__ ("bne %g", l_inner); //(3 cycles in loop, 2 cycles at end)
-    __asm__ ("dey"); //           ; (2 cycles)
-    __asm__ ("bne %g", l_outer);  // (3 cycles in loop, 2 cycles at end)
+	__asm__ volatile ("dex"); // 2 cycles
+	__asm__ volatile ("bne %g", l_inner); //(3 cycles in loop, 2 cycles at end)
+    __asm__ volatile ("dey"); //           ; (2 cycles)
+    __asm__ volatile ("bne %g", l_outer);  // (3 cycles in loop, 2 cycles at end)
 }
 
 void drive_enable()
 {
-	__asm__ ("ldx #%b", SLOT6);
-	__asm__ ("lda %w, x", SELECT_1);
-	__asm__ ("lda %w, x", MOTOR_ON);
+	__asm__ volatile ("ldx #%b", SLOT6);
+	__asm__ volatile ("lda %w, x", SELECT_1);
+	__asm__ volatile ("lda %w, x", MOTOR_ON);
 }
 
 void drive_disable()
 {
-	__asm__ ("ldx #%b", SLOT6);
-	__asm__ ("lda %w, x", SELECT_1);
-	__asm__ ("lda %w, x", MOTOR_OFF);
+	__asm__ volatile ("ldx #%b", SLOT6);
+	__asm__ volatile ("lda %w, x", SELECT_1);
+	__asm__ volatile ("lda %w, x", MOTOR_OFF);
 }
 
 void main(void)
 {
 	printf("hi ");
 	delay(0xffff);
-	drive_enable();
 	printf("on ");
+	drive_enable();
 	delay(0xffff);
-	delay(0xffff);
-	delay(0xffff);
-	delay(0xffff);
-	drive_disable();
 	printf("off ");
-
+	drive_disable();
 
 	while (1)
 	{
