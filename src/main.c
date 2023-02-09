@@ -28,15 +28,16 @@ void delay(uint16_t c)
 	static uint8_t ycnt = 0;
 	
 	xcnt = c & 0xff;
-	xcnt = (c >> 8) & 0xff;
+	ycnt = (c >> 8) & 0xff;
 
 	__asm__ ("ldy %v", ycnt); // 2 cycles
+l_outer:
 	__asm__ ("ldx %v", xcnt); // 2 cycles
-l_delay:
+l_inner:
 	__asm__ ("dex"); // 2 cycles
-	__asm__ ("bne %g", l_delay); //(3 cycles in loop, 2 cycles at end)
+	__asm__ ("bne %g", l_inner); //(3 cycles in loop, 2 cycles at end)
     __asm__ ("dey"); //           ; (2 cycles)
-    __asm__ ("bne %g", l_delay);  // (3 cycles in loop, 2 cycles at end)
+    __asm__ ("bne %g", l_outer);  // (3 cycles in loop, 2 cycles at end)
 }
 
 void drive_enable()
@@ -46,11 +47,27 @@ void drive_enable()
 	__asm__ ("lda %w, x", MOTOR_ON);
 }
 
+void drive_disable()
+{
+	__asm__ ("ldx #%b", SLOT6);
+	__asm__ ("lda %w, x", SELECT_1);
+	__asm__ ("lda %w, x", MOTOR_OFF);
+}
+
 void main(void)
 {
-	drive_enable();
-	printf("hello ");
+	printf("hi ");
 	delay(0xffff);
+	drive_enable();
+	printf("on ");
+	delay(0xffff);
+	delay(0xffff);
+	delay(0xffff);
+	delay(0xffff);
+	drive_disable();
+	printf("off ");
+
+
 	while (1)
 	{
 	}
