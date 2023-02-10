@@ -22,11 +22,11 @@
 #define SELECT_1  0xC08A
 #define SELECT_2  0xC08B
 
+static uint8_t xcnt = 0;
+static uint8_t ycnt = 0;
+
 void delay(uint16_t c)
 {
-	static uint8_t xcnt = 0;
-	static uint8_t ycnt = 0;
-	
 	xcnt = c & 0xff;
 	ycnt = (c >> 8) & 0xff;
 
@@ -54,7 +54,7 @@ l_inner:
 	// inner loop takes 1 + X*5 cycles
 	// outer loop adds 5 cycles to inner loop then * Y
 	// approx: (6 + X*5)*Y
-	// example 0xffff = (6 + 5*255)*255 = 326k cycles or 326 ms
+	// example 0x7fff = (6 + 5*255)*255 = 326k cycles or 326 ms
 
 }
 
@@ -72,29 +72,54 @@ void drive_disable()
 	__asm__ volatile ("lda %w, x", MOTOR_OFF);
 }
 
-void sequence()
+void sequence_up()
 {
 	int i;
 	for (i = 0; i < 10; i++)
 	{
 		__asm__ volatile("lda %w", PHI_0_ON + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_3_OFF + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_1_ON + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_0_OFF + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_2_ON + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_1_OFF + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_3_ON + SLOT6);
-		delay(1);
+		delay(0x08);
 		__asm__ volatile("lda %w", PHI_2_OFF + SLOT6);
-		delay(1);
+		delay(0x08);
 	}
 }
+
+void sequence_down()
+{
+	int i;
+	for (i = 0; i < 20; i++)
+	{
+		__asm__ volatile("lda %w", PHI_3_ON + SLOT6);
+		delay(0x08);
+		__asm__ volatile("lda %w", PHI_0_OFF + SLOT6);
+		delay(0x08);
+		__asm__ volatile("lda %w", PHI_2_ON + SLOT6);
+		delay(0x08);	
+		__asm__ volatile("lda %w", PHI_3_OFF + SLOT6);			
+		delay(0x08);
+		__asm__ volatile("lda %w", PHI_1_ON + SLOT6);
+		delay(0x08);	
+		__asm__ volatile("lda %w", PHI_2_OFF + SLOT6);
+		delay(0x08);		
+		__asm__ volatile("lda %w", PHI_0_ON + SLOT6);
+		delay(0x08);
+		__asm__ volatile("lda %w", PHI_1_OFF + SLOT6);
+		delay(0x08);
+	}
+}
+
 
 void step01()
 {
@@ -133,12 +158,12 @@ void step30()
 void main(void)
 {
 	printf("hi ");
-	delay(0xffff);
+	delay(0x7fff);
 	printf("on ");
 	drive_enable();
-	delay(0xffff);
-	sequence();
-	delay(0xffff);
+	delay(0x7fff);
+	sequence_down();
+	delay(0x7fff);
 	printf("off ");
 	drive_disable();
 
